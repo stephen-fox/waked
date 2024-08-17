@@ -207,8 +207,6 @@ func execRetry(ctx context.Context, exePath string) error {
 
 func execOnce(ctx context.Context, exePath string) error {
 	if strings.Contains(filepath.Base(exePath), needsUnlockStr) {
-		log.Println("TODO - needs unlock")
-
 		isLocked, err := checkIfLocked(ctx)
 		switch {
 		case isLocked:
