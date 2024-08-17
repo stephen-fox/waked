@@ -53,6 +53,8 @@ func mainWtihError() error {
 
 	help := flag.Bool(helpArg, false, "Display this information")
 
+	// TODO: Use syslog - unfortunately, syslog library is broken
+	// - thanks, Apple: https://github.com/golang/go/issues/59229
 	flag.Parse()
 
 	if *help {
