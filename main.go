@@ -132,7 +132,7 @@ type execCtl struct {
 	ctx            context.Context
 	exesDir        string
 	mu             sync.Mutex
-	stopChildrenFn func()
+	stopChildrenFn func(error)
 }
 
 func (o *execCtl) validate() error {
@@ -162,10 +162,10 @@ func (o *execCtl) onEvent(foundation.Notification) {
 	}
 
 	if o.stopChildrenFn != nil {
-		o.stopChildrenFn()
+		o.stopChildrenFn(errors.New("recieved new wake event"))
 	}
 
-	ctx, cancelFn := context.WithCancel(o.ctx)
+	ctx, cancelFn := context.WithCancelCause(o.ctx)
 	o.stopChildrenFn = cancelFn
 
 	for _, info := range infos {
