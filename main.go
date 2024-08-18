@@ -189,36 +189,48 @@ func execRetry(ctx context.Context, exePath string) error {
 		}
 
 		err = execOnce(ctx, exePath)
-		switch err {
-		case nil:
+		if err == nil {
 			return nil
-		default:
-			log.Printf("[%s] %s", exePath, err)
 		}
 
 		select {
 		case <-ctx.Done():
+			log.Printf("[%s] giving up - %s", ctx.Err())
+
 			return ctx.Err()
 		default:
+		}
+
+		waitFor := 10 * time.Second
+
+		if errors.Is(err, screenLockedErr) {
+			waitFor = 5 * time.Second
+		}
+
+		log.Printf("[%s] exec failed, will retry in %s - %s",
+			exePath, waitFor.String(), err)
+
+		select {
+		case <-ctx.Done():
+			log.Printf("[%s] giving up - %s", ctx.Err())
+
+			return ctx.Err()
+		case <-time.After(waitFor):
 			continue
 		}
 	}
 }
+
+var screenLockedErr = errors.New("screen is locked")
 
 func execOnce(ctx context.Context, exePath string) error {
 	if strings.Contains(filepath.Base(exePath), needsUnlockStr) {
 		isLocked, err := checkIfLocked(ctx)
 		switch {
 		case isLocked:
-			select {
-			case <-ctx.Done():
-				return fmt.Errorf("context canceled while checking if screen locked - %w",
-					ctx.Err())
-			case <-time.After(5 * time.Second):
-				return fmt.Errorf("screen was locked, will retrying...")
-			}
+			return screenLockedErr
 		case err != nil:
-			log.Printf("failed to determine if screen is locked - %s", err)
+			log.Printf("[warn] failed to determine if screen is locked - %s", err)
 		}
 	}
 
@@ -241,12 +253,7 @@ func execOnce(ctx context.Context, exePath string) error {
 
 	err := exe.Run()
 	if err != nil {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(10 * time.Second):
-			return fmt.Errorf("process failed (reason: %s), retrying...", err)
-		}
+		return fmt.Errorf("exec failed - %w", err)
 	}
 
 	return nil
