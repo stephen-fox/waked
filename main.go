@@ -335,5 +335,7 @@ func checkIfLocked(ctx context.Context) (bool, error) {
 			plutil.Args, err, plutilOutput)
 	}
 
+	plutilOutput = bytes.TrimSpace(plutilOutput)
+
 	return bytes.Equal([]byte("true"), plutilOutput), nil
 }
