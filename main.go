@@ -122,11 +122,11 @@ func mainWtihError() error {
 	// https://developer.apple.com/documentation/foundation/nsnotificationcenter/1411723-addobserverforname?language=objc
 	//
 	macos.RunApp(func(appkit.Application, *appkit.ApplicationDelegate) {
-		nc := appkit.Workspace_SharedWorkspace().NotificationCenter()
+		notifCenter := appkit.Workspace_SharedWorkspace().NotificationCenter()
 
 		queue := foundation.OperationQueue_MainQueue()
 
-		nc.AddObserverForNameObjectQueueUsingBlock(
+		notifCenter.AddObserverForNameObjectQueueUsingBlock(
 			foundation.NotificationName("NSWorkspaceDidWakeNotification"),
 			nil,
 			queue,
