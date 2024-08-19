@@ -162,16 +162,18 @@ func (o *execCtl) onEvent(foundation.Notification) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
+	if o.stopChildrenFn != nil {
+		o.stopChildrenFn(errors.New("recieved new wake event"))
+
+		o.stopChildrenFn = nil
+	}
+
 	infos, err := os.ReadDir(o.exesDir)
 	if err != nil {
 		log.Printf("failed to read executables directory %q - %s",
 			o.exesDir, err)
 
 		return
-	}
-
-	if o.stopChildrenFn != nil {
-		o.stopChildrenFn(errors.New("recieved new wake event"))
 	}
 
 	ctx, cancelFn := context.WithCancelCause(o.ctx)
