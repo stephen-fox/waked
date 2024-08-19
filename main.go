@@ -62,6 +62,8 @@ func main() {
 
 func mainWtihError() error {
 	// If we do not runtime.LockOSThread, then we never get events.
+	// This is related to starting a Go routine to monitor for
+	// OS signals.
 	runtime.LockOSThread()
 
 	help := flag.Bool(helpArg, false, "Display this information")
@@ -103,14 +105,21 @@ func mainWtihError() error {
 		return err
 	}
 
+	// Here we use the NSNotificationCenter via the shared workspace
+	// to receive NSWorkspaceDidWakeNotification events.
+	//
+	// In order to do this, we need to execute the macOS app entrypoint
+	// code. If we do not do this, we never get events. Stackoverflow
+	// user Hans Passant notes:
+	//
+	//   "A console mode app for example, that won't work,
+	//   CFRunLoopRun() is crucial to allow the OS to make
+	//   callbacks."
+	//   - https://stackoverflow.com/questions/64009042/not-receiving-nsworkspacewillsleepnotification-from-notificationcenter-using-c-s#comment113219829_64009042
+	//
 	// Examples:
 	// https://forums.developer.apple.com/forums/thread/26430
 	// https://developer.apple.com/documentation/foundation/nsnotificationcenter/1411723-addobserverforname?language=objc
-	//
-	// "A console mode app for example, that won't work,
-	// CFRunLoopRun() is crucial to allow the OS to make callbacks."
-	//
-	// - https://stackoverflow.com/questions/64009042/not-receiving-nsworkspacewillsleepnotification-from-notificationcenter-using-c-s#comment113219829_64009042
 	//
 	macos.RunApp(func(appkit.Application, *appkit.ApplicationDelegate) {
 		nc := appkit.Workspace_SharedWorkspace().NotificationCenter()
