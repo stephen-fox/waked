@@ -34,6 +34,16 @@ $ waked ~/.waked/
 
 `launchctl unload -w ~/Library/LaunchAgents/com.gitlab.stephen-fox.waked.plist`
 
+## Troubleshooting
+
+The included launchd agent plist does not enable logging by default.
+To enable logging, add the following keys inside of the `dict` section:
+
+```xml
+  <key>StandardErrorPath</key>
+  <string>/Users/your-username/.waked/waked.log</string>
+```
+
 ## Custom screen unlock check logic
 
 If you would like to implement your own screen unlock checking logic in
